@@ -299,9 +299,16 @@ class Experiment(ABC):
         #remove entries which dont contain the suffix
         trajectory_files = [file for file in trajectory_files if suffix in file]
 
-        #sort the files by the number at the end
-        trajectory_files = sorted(trajectory_files, 
-                                  key=lambda x: int(x.split("_")[-1].split(".")[0]))
+        # Sort the files by the numeric part at the end, handling non-numeric cases
+        def extract_numeric_part(filename):
+            parts = filename.split("_")
+            for part in reversed(parts):
+                if part.split(".")[0].isdigit():
+                    return int(part.split(".")[0])
+            return 0  # Default if no numeric part is found
 
-        # return traj_no
-        return int(trajectory_files[-1].split("_")[-1].split(".")[0])
+        trajectory_files = sorted(trajectory_files, key=extract_numeric_part)
+
+        if not trajectory_files:
+            return 0  # Default if no files are found
+        return extract_numeric_part(trajectory_files[-1])
