@@ -106,16 +106,27 @@ class MD_Experiment(Experiment):
                              "-f", traj_file1, 
                              "-s", tpr_path, 
                              *self.settings.pbc_commands[1], 
-                             "-o", traj_file2,
-                             "-dump", "0"]
+                             "-o", traj_file2]
+                             
+        pdb_file = traj_file2.replace(".xtc", ".pdb")
+
+        #pull only the first frame of the trajectory
+        trjconv_command3 = ["gmx", "trjconv",
+                                "-f", traj_file2, 
+                                "-s", tpr_path, 
+                                "-dump", "0", 
+                                "-o", pdb_file]
         
+
         print("Running trjconv command 1: ", trjconv_command1)
         subprocess.run(trjconv_command1, input=b"1\n0\n", check=True)
 
         print("Running trjconv command 2: ", trjconv_command2)
         subprocess.run(trjconv_command2, input=b"1\n0\n", check=True)
 
-        pdb_file = traj_file2.replace(".xtc", ".pdb")
+        print("Running trjconv command 3: ", trjconv_command3)
+        subprocess.run(trjconv_command3, input=b"1\n0\n", check=True)
+        
         
         # trjconv_command3 = ["gmx", "trjconv", 
         #                      "-f", traj_file1, 

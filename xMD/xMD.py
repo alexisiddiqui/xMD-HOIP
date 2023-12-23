@@ -58,11 +58,15 @@ class xMD(MD_Experiment):
         Retruns the tpr file name.
         """
 
-        md_mdp, input_path, topo_path, tpr_path = super().run_MD_step()
+        md_mdp, input_path, topo_path, _ = super().run_MD_step()
 
         assert isinstance(md_mdp, list), "md_mdp must be a list of mdp files"
 
-        for mdp in md_mdp:
+        for idx, mdp in enumerate(md_mdp):
+
+            self.set_trajectory_number(trajectory_number=idx)
+
+            _,_,_, tpr_path = super().run_MD_step() 
 
             input_path = run_MD(mdp, 
                                 input_path, 
@@ -71,9 +75,7 @@ class xMD(MD_Experiment):
                                 self.gmx[0],
                                 self.settings.gpu)
             
-            self.set_trajectory_number()
 
-            _,_,_, tpr_path = super().run_MD_step() 
     
             # add log file to tensorboard as text
         return tpr_path
