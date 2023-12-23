@@ -7,7 +7,7 @@ import time
 import shutil
 import pickle
 from abc import ABC, abstractmethod
-from xMD.MD_Settings import Settings
+from .MD_Settings import Settings
 ### Abstract method for the MD and Docking experiment classes
 
 class Experiment(ABC):
@@ -15,7 +15,6 @@ class Experiment(ABC):
     This class represents an experimental trial.
     WHat do we need in this class?
     This class will handle some of the folder checking as well as the settings used for the run.
-    
     """    
     def __init__(self,settings: Settings, name=None, pdbcode: str = None, rep=None):
         super().__init__()
@@ -95,7 +94,10 @@ class Experiment(ABC):
                 pickle.dump(self, f)
                 print("Saving experiment to: ", save_path)
                 return save_path
+            
 
+    ### TODO changed to abstract method - will this save settings? need to also be able to save and load a human readable file
+    # @abstractmethod
     def load_experiment(self, latest=False, idx=None, load_path=None):
         """
         Loads the settings of the experiment from a pickle file.
@@ -106,10 +108,7 @@ class Experiment(ABC):
                 print("Loading experiment from: ", load_path)
                 return pickle.load(f)
             # print("Loaded object type:", type(loaded_obj))
-
             # return deepcopy(loaded_obj)
-
-
         # If no explicit path is provided
         search_dir = self.dirs[self.settings.logs_directory]
         print("Searching for experiment files in: ", search_dir)
@@ -131,12 +130,10 @@ class Experiment(ABC):
             print("Loading first experiment.")
             file = pkl_files[0]
 
-        
         load_path = file    
         print("Loading experiment from: ", load_path)
         with open(load_path, 'rb') as f:
             return pickle.load(f)
-
         # return deepcopy(loaded_obj)
 
 
@@ -171,9 +168,10 @@ class Experiment(ABC):
         if file_names is not None:
             config_files = file_names
 
-        self.config_files = config_files[0]
+        self.config_files = config_files
         print("Loading config files: ", config_files)
 
+    ### TODO add index files
     def prepare_input_files(self, search=None, file_names=None):
         """
         Prepares the topology files for the trial.
@@ -202,7 +200,8 @@ class Experiment(ABC):
 ### This is mostly to check remote directories: return to this later.
     def check_all_trajectory_files(self, data_dir=None, traj_extension=None):
         """
-        Checks if the trajectory files exist. For a given trial goes into each replicate and checks for file with the correct extension.
+        Checks if the trajectory files exist. 
+        For a given trial goes into each replicate and checks for file with the correct extension.
         Adds the name to the trajectories dictionary. If a data dir is given, it will check it.
         """
         if data_dir is None:
@@ -210,12 +209,16 @@ class Experiment(ABC):
 
         if traj_extension is None:
             traj_extension = self.settings.search_traj
+        print("Checking trajectory files in: ", data_dir)
 
-        for rep in os.listdir(data_dir):
-            self.trajectories[rep] = []
-            for file in os.listdir(os.path.join(data_dir, rep)):
-                if traj_extension in file and "#" not in file:
-                    self.trajectories[rep].append(file)
+        for _dir in os.listdir(data_dir):
+            if os.path.isdir(os.path.join(data_dir, _dir)):
+                rep = _dir
+                self.trajectories[rep] = []
+
+                for file in os.listdir(os.path.join(data_dir, rep)):
+                    if traj_extension in file and "#" not in file:
+                        self.trajectories[rep].append(file)
         print("Trajectory files: ", self.trajectories)
         return self.trajectories
     
@@ -266,12 +269,12 @@ class Experiment(ABC):
 
         print("Replicate number: ", self.rep_no)
 
-    def set_trajectory_number(self, trajectory_number=None):
+    def set_trajectory_number(self, trajectory_number=None, suffix=None):
         """
         Sets the trajectory number for the trial.
         """
         if trajectory_number is None:
-            self.traj_no = self.find_latest_trajectory()
+            self.traj_no = self.find_latest_trajectory(suffix=suffix)
         else:
             self.traj_no = int(trajectory_number)
         print("Trajectory number: ", self.traj_no)

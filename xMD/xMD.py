@@ -13,104 +13,78 @@ import argparse
 
 from xMD.MD_Experiment import MD_Experiment
 from xMD.MD_Settings import GROMACS_Settings
+from xMD.AuxMD import run_MD, traj_to_pdb
 
 class xMD(MD_Experiment):
     def __init__(self, settings: GROMACS_Settings, name=None, pdbcode: str = None, rep=None):
         super().__init__(settings, name, pdbcode, rep)
 
 
-    def run_experiment(self, search=None, rep=None):
+    def run_experiment(self, 
+                       search=None, 
+                       config_files=None, 
+                       topology_files=None, 
+                       rep=None, 
+                       md_steps:int=None):
         """
         This will run the experiment for the trial.
         suffix is the suffix for the initial topology files. 
         Should revert back to the suffix set in the settings.
         """
+        ### TODO more flexibile setup of experiment
+        # how do we make sure settings are not overwritten by this method?
         # TODO setup tensorboard logging
         # write parser for gromacs outputs
         # write tensorboard logger
-        # use threading to run logger concurrently 
+        # use threading to run logger concurrently
         self.set_replicate(rep)
-        self.prepare_simulation(search)
+        self.prepare_simulation(search,
+                                config_files=config_files,
+                                topology_files=topology_files)
+        if md_steps is None:
+            md_steps = len(self.config_files)
+        if len(self.config_files) == 1:
+            self.config_files = self.config_files * md_steps
+        assert len(self.config_files) == md_steps, "Number of config files must match number of steps"
+
         tpr_path = self.run_MD_step()
-        traj_file = self.prepare_analysis(tpr_path=tpr_path)
-        self.run_analysis(traj_file=traj_file)
+        traj_file, pdb_top_file = self.prepare_analysis(tpr_path=tpr_path)
+        self.run_analysis(traj_file=traj_file, tpr_path=tpr_path, pdb_top=pdb_top_file)
 
-
+    ## TODO add repeat steps - run for as many mdp files are provided.
     def run_MD_step(self):
         """
-        This will run a step of MD for the trial.
+        This will run the steps of MD for the trial.
         Retruns the tpr file name.
         """
 
-        topo_files = [f for f in self.topology_files if f.endswith(".top")]
-        gro_files = [f for f in self.topology_files if f.endswith(".gro")]
-        tpr_name = "_".join([self.settings.suffix, 
-                             self.settings.pdbcode, 
-                            str(self.traj_no)]) + ".tpr"
-        
-        tpr_path = os.path.join(self.dirs[self.settings.data_directory], 
-                                self.settings.rep_directory + str(self.rep_no), 
-                                tpr_name)
-        
-        md_mdp = os.path.join(self.settings.config, self.config_files)
-        
-        topo_name = topo_files[0]
-        topo_path = os.path.join(self.dirs[self.settings.data_directory], 
-                                self.settings.rep_directory + str(self.rep_no), 
-                                topo_name)
-        
-        gro_name = gro_files[0]
-        input_path = os.path.join(self.dirs[self.settings.data_directory], 
-                                self.settings.rep_directory + str(self.rep_no), 
-                                gro_name) 
+        md_mdp, input_path, topo_path, tpr_path = super().run_MD_step()
 
-        grompp_command = ["gmx", "grompp", 
-                          "-f", md_mdp, 
-                          "-c", input_path, 
-                          "-p", topo_path, 
-                          "-o", tpr_path, 
-                          "-r", input_path, 
-                          "-maxwarn", "1",
-                          "-v"]
-        subprocess.run(grompp_command, check=True)
-        ### TODO add try except for gmx vs gmx_mpi
-        mdrun_command = [self.gmx[0], "mdrun", "-v", "-deffnm", tpr_path.replace(".tpr","")]
-        subprocess.run(mdrun_command, check=True)
+        assert isinstance(md_mdp, list), "md_mdp must be a list of mdp files"
 
-        self.set_trajectory_number()
+        for mdp in md_mdp:
+
+            input_path = run_MD(mdp, 
+                                input_path, 
+                                topo_path, 
+                                tpr_path, 
+                                self.gmx[0],
+                                self.settings.gpu)
+            
+            self.set_trajectory_number()
+
+            _,_,_, tpr_path = super().run_MD_step() 
+    
+            # add log file to tensorboard as text
         return tpr_path
 
 ### TODO create analysis commands - add data to the dataframe
-    def run_analysis(self, traj_file=None, tpr_path=None):
-        ### This will take args from settings for what analyses to run
-        # for now we just convert to pdb
-        #if traj file is not given try to rebuild name
-        if tpr_path is None:
-            tpr_name = "_".join([self.settings.suffix, 
-                                            self.settings.pdbcode, 
-                                            str(self.traj_no)]) + ".tpr"
-            tpr_path = os.path.join(self.dirs[self.settings.data_directory], 
-                                    self.settings.rep_directory + str(self.rep_no), 
-                                    tpr_name)
+    def run_analysis(self, traj_file=None, tpr_path=None, pdb_top=None):
 
-        if traj_file is None:
-            traj_file = tpr_path.replace(".tpr", ".xtc")
-            traj_file = traj_file.split(".")[-2] + self.settings.pbc_extensions[1] + ".xtc"
-            pdb_name = str(self.rep_no) + "_" + tpr_name.replace(".tpr", ".pdb")
-            pdb_name = pdb_name.split(os.sep)[-1]
-        else:
-            pdb_name = str(self.rep_no) + "_" + traj_file.replace(".xtc", ".pdb")
-            pdb_name = pdb_name.split(os.sep)[-1]
-
-
-        pdb_path = os.path.join(self.dirs[self.settings.viz], pdb_name)
         
+        traj_file, tpr_path, pdb_path = super().run_analysis(traj_file, tpr_path, pdb_top)
 
-        pdbout_command = ["gmx", "trjconv", 
-                            "-f", traj_file,
-                            "-s", tpr_path,
-                            "-o", pdb_path]
         
-        subprocess.run(pdbout_command, input=b"1\n", check=True)
-        print("Saved pdb file to: ", pdb_path)
-
+        traj_to_pdb(traj_file,
+                    pdb_top,
+                    pdb_path)

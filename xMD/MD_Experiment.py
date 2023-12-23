@@ -8,8 +8,8 @@ import pandas as pd
 import argparse
 import time
 import pickle
-from xMD.Experiment_ABC import Experiment
-from xMD.MD_Settings import GROMACS_Settings
+from .Experiment_ABC import Experiment
+from .MD_Settings import GROMACS_Settings
 
 class MD_Experiment(Experiment):
     def __init__(self,settings: GROMACS_Settings, name=None, pdbcode=None, rep=None):
@@ -27,6 +27,7 @@ class MD_Experiment(Experiment):
             self.gmx = ("gmx_mpi","gmx")
         else:
             self.gmx = ("gmx","gmx_mpi")
+
 
     def check_args(self):
         """
@@ -105,7 +106,8 @@ class MD_Experiment(Experiment):
                              "-f", traj_file1, 
                              "-s", tpr_path, 
                              *self.settings.pbc_commands[1], 
-                             "-o", traj_file2]
+                             "-o", traj_file2,
+                             "-dump", "0"]
         
         print("Running trjconv command 1: ", trjconv_command1)
         subprocess.run(trjconv_command1, input=b"1\n0\n", check=True)
@@ -113,21 +115,35 @@ class MD_Experiment(Experiment):
         print("Running trjconv command 2: ", trjconv_command2)
         subprocess.run(trjconv_command2, input=b"1\n0\n", check=True)
 
-        return traj_file2
+        pdb_file = traj_file2.replace(".xtc", ".pdb")
+        
+        # trjconv_command3 = ["gmx", "trjconv", 
+        #                      "-f", traj_file1, 
+        #                      "-s", tpr_path, 
+        #                      *self.settings.pbc_commands[1], 
+        #                      "-o", pdb_file,
+
+        # print("Running trjconv command 3: ", trjconv_command3)
+        # subprocess.run(trjconv_command3, input=b"1\n0\n", check=True)  
+
+        return traj_file2, pdb_file
 
 ### TODO sort out the trajfile naming
     def prepare_analysis(self, tpr_path):
         """
         This will prepare the analysis for the trial.
         """
-        return self.pbc_conversion(tpr_path)
+        traj_file2, pdb_file = self.pbc_conversion(tpr_path)
+        # TODO: concatenate trajecotry files 
 
-    def prepare_simulation(self, search=None):
+        return traj_file2, pdb_file
+
+    def prepare_simulation(self, search=None, config_files: list = None, topology_files: list = None):
         """
         This will prepare the simulation for the trial.
         """
-        self.prepare_config()
-        self.prepare_input_files(search)
+        self.prepare_config(config_files)
+        self.prepare_input_files(search, topology_files)
         self.load_input_files()
 
     def save_experiment(self, save_name=None):
@@ -160,3 +176,69 @@ class MD_Experiment(Experiment):
         print("Environment variables set: ", self.settings.environ, self.settings.environ_path)
 
         
+    def prepare_TB_writer(self):
+        """
+        This will prepare the TB writer for the trial.
+        """
+        pass
+
+    @abstractmethod
+    def run_MD_step(self):
+        """
+        Abstract method for running a step of MD for the trial.
+        Handles the preparation of input files.
+        Returns:
+            None
+        """
+        
+        topo_files = [f for f in self.topology_files if f.endswith(".top")]
+        gro_files = [f for f in self.topology_files if f.endswith(".gro")]
+        tpr_name = "_".join([self.settings.suffix, 
+                            self.settings.pdbcode, 
+                            str(self.traj_no)]) + ".tpr"
+        
+        tpr_path = os.path.join(self.dirs[self.settings.data_directory], 
+                                self.settings.rep_directory + str(self.rep_no), 
+                                tpr_name)
+        
+        md_mdps = [os.path.join(self.settings.config, config) for config in self.config_files]
+        topo_name = topo_files[0]
+        topo_path = os.path.join(self.dirs[self.settings.data_directory], 
+                                self.settings.rep_directory + str(self.rep_no), 
+                                topo_name)
+        
+        gro_name = gro_files[0]
+        input_path = os.path.join(self.dirs[self.settings.data_directory], 
+                                self.settings.rep_directory + str(self.rep_no), 
+                                gro_name)
+
+        return md_mdps, input_path, topo_path, tpr_path
+    
+    @abstractmethod
+    def run_analysis(self, traj_file=None, tpr_path=None, pdb_top=None):
+        ### This will take args from settings for what analyses to run
+        # for now we just convert to pdb
+        #if traj file is not given try to rebuild name
+        if tpr_path is None:
+            tpr_name = "_".join([self.settings.suffix, 
+                                            self.settings.pdbcode, 
+                                            str(self.traj_no)]) + ".tpr"
+            tpr_path = os.path.join(self.dirs[self.settings.data_directory], 
+                                    self.settings.rep_directory + str(self.rep_no), 
+                                    tpr_name)
+
+        if traj_file is None:
+            traj_file = tpr_path.replace(".tpr", ".xtc")
+            traj_file = traj_file.split(".")[-2] + self.settings.pbc_extensions[1] + ".xtc"
+            pdb_name = str(self.rep_no) + "_" + tpr_name.replace(".tpr", ".pdb")
+            pdb_name = pdb_name.split(os.sep)[-1]
+        else:
+            pdb_name = str(self.rep_no) + "_" + traj_file.replace(".xtc", ".pdb")
+            pdb_name = pdb_name.split(os.sep)[-1]
+
+
+        pdb_path = os.path.join(self.dirs[self.settings.viz], pdb_name)
+
+        return traj_file, tpr_path, pdb_path
+        
+

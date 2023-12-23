@@ -61,3 +61,5 @@ class GROMACS_Settings(Settings):
         self.environ = "GMXLIB"
         self.gmx = ("gmx","gmx_mpi")
         self.gmx_mpi_on = True
+        self.gpu = False
+        self.mdrun_gpu_opt = ["-pin", "on", "-pme", "gpu", "-pmefft", "gpu"]
