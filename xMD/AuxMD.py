@@ -49,6 +49,28 @@ def traj_to_pdb(traj_file: str,
     print("PDB file written to: ", pdb_path)  
     
       
+def concatenate_traj_files(traj_files: list, output_traj_file: str):
+    """
+    Concatenates multiple trajectory files into a single trajectory file.
+
+    Args:
+    traj_files (list): List of trajectory files to concatenate.
+    output_traj_file (str): The output file name for the concatenated trajectory.
+
+    Returns:
+    None: The function does not return a value but writes the concatenated trajectory to a file.
+    """
+    trjcat_command = ["gmx", "trjcat", "-o", output_traj_file]
+    trjcat_command.append("-f")
+
+    # Add all the trajectory files to the command
+    for traj_file in traj_files:
+        trjcat_command.append(traj_file)
+
+    # Running the trjcat command
+    print("Running trjcat command: ", trjcat_command)
+    subprocess.run(trjcat_command, input=b"0\n", check=True)
+    print("Concatenated trajectory written to: ", output_traj_file)
 
 def PBC_conversion():
 

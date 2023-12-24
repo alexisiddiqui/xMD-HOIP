@@ -10,6 +10,7 @@ import time
 import pickle
 from .Experiment_ABC import Experiment
 from .MD_Settings import GROMACS_Settings
+from .AuxMD import concatenate_traj_files
 
 class MD_Experiment(Experiment):
     def __init__(self,settings: GROMACS_Settings, name=None, pdbcode=None, rep=None):
@@ -126,7 +127,7 @@ class MD_Experiment(Experiment):
 
         print("Running trjconv command 3: ", trjconv_command3)
         subprocess.run(trjconv_command3, input=b"1\n0\n", check=True)
-        
+
         
         # trjconv_command3 = ["gmx", "trjconv", 
         #                      "-f", traj_file1, 
@@ -140,14 +141,32 @@ class MD_Experiment(Experiment):
         return traj_file2, pdb_file
 
 ### TODO sort out the trajfile naming
-    def prepare_analysis(self, tpr_path):
+    def prepare_analysis(self, tpr_paths:list):
         """
         This will prepare the analysis for the trial.
         """
-        traj_file2, pdb_file = self.pbc_conversion(tpr_path)
-        # TODO: concatenate trajecotry files 
+        traj_files = []
+        for tpr_path in tpr_paths:
+            try:
+                traj_file, pdb_file = self.pbc_conversion(tpr_path)
+            # TODO: concatenae trajecotry files 
+                traj_files.append(traj_file)
+            except:
+                print("Failed to convert trajectory file: ", tpr_path)
+                print("Skipping")
 
-        return traj_file2, pdb_file
+        cat_traj_name = "_".join([self.settings.suffix, 
+                                    self.settings.pdbcode, 
+                                    "cat",
+                                    str(self.rep_no)]) + ".xtc" 
+        
+        cat_traj_path = os.path.join(self.dirs[self.settings.data_directory],
+                                    self.settings.rep_directory + str(self.rep_no),
+                                    cat_traj_name)
+        
+        concatenate_traj_files(traj_files, cat_traj_path)
+
+        return cat_traj_path, pdb_file
 
     def prepare_simulation(self, search=None, config_files: list = None, topology_files: list = None):
         """

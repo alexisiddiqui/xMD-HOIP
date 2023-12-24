@@ -47,9 +47,9 @@ class xMD(MD_Experiment):
             self.config_files = self.config_files * md_steps
         assert len(self.config_files) == md_steps, "Number of config files must match number of steps"
 
-        tpr_path = self.run_MD_step()
-        traj_file, pdb_top_file = self.prepare_analysis(tpr_path=tpr_path)
-        self.run_analysis(traj_file=traj_file, tpr_path=tpr_path, pdb_top=pdb_top_file)
+        tpr_paths = self.run_MD_step()
+        traj_file, pdb_top_file = self.prepare_analysis(tpr_paths=tpr_paths)
+        self.run_analysis(traj_file=traj_file, tpr_path=tpr_paths[-1], pdb_top=pdb_top_file)
 
     ## TODO add repeat steps - run for as many mdp files are provided.
     def run_MD_step(self):
@@ -61,6 +61,8 @@ class xMD(MD_Experiment):
         md_mdp, input_path, topo_path, _ = super().run_MD_step()
 
         assert isinstance(md_mdp, list), "md_mdp must be a list of mdp files"
+
+        tpr_paths = []
 
         for idx, mdp in enumerate(md_mdp):
 
@@ -75,10 +77,10 @@ class xMD(MD_Experiment):
                                 self.gmx[0],
                                 self.settings.gpu)
             
+            tpr_paths.append(tpr_path)
 
-    
             # add log file to tensorboard as text
-        return tpr_path
+        return tpr_paths
 
 ### TODO create analysis commands - add data to the dataframe
     def run_analysis(self, traj_file=None, tpr_path=None, pdb_top=None):
