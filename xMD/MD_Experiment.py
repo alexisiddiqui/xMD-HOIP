@@ -5,6 +5,7 @@ import shutil
 import subprocess
 from abc import ABC, abstractmethod
 import pandas as pd
+import MDAnalysis as mda
 import argparse
 import time
 import pickle
@@ -160,9 +161,10 @@ class MD_Experiment(Experiment):
                                     "cat",
                                     str(self.rep_no)]) + ".xtc" 
         
-        cat_traj_path = os.path.join(self.dirs[self.settings.data_directory],
-                                    self.settings.rep_directory + str(self.rep_no),
-                                    cat_traj_name)
+        cat_traj_dir = os.path.join(self.dirs[self.settings.data_directory],
+                                    self.settings.rep_directory + str(self.rep_no))
+
+        cat_traj_path = os.path.join(cat_traj_dir, cat_traj_name)
         
         concatenate_traj_files(traj_files, cat_traj_path)
 
