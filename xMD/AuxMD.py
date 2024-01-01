@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import pandas as pd
 import argparse
-
+import MDAnalysis as mda
 
 def run_MD(md_mdp: str, 
            input_path: str, 
@@ -48,8 +48,7 @@ def traj_to_pdb(traj_file: str,
     subprocess.run(pdbout_command, input=b"1\n", check=True)
     print("PDB file written to: ", pdb_path)  
     
-      
-def concatenate_traj_files(traj_files: list, output_traj_file: str):
+def concatenate_traj_files(traj_files: list, output_traj_file: str, top_path:str=None):
     """
     Concatenates multiple trajectory files into a single trajectory file.
 
@@ -60,17 +59,17 @@ def concatenate_traj_files(traj_files: list, output_traj_file: str):
     Returns:
     None: The function does not return a value but writes the concatenated trajectory to a file.
     """
-    trjcat_command = ["gmx", "trjcat", "-o", output_traj_file]
-    trjcat_command.append("-f")
+    if top_path is None:
+        top_path = traj_files[0].replace(".xtc", ".pdb")
 
-    # Add all the trajectory files to the command
-    for traj_file in traj_files:
-        trjcat_command.append(traj_file)
+    # use MDAnalysis to concatenate trajectory files
+    
+    u = mda.Universe(top_path, *traj_files)
 
-    # Running the trjcat command
-    print("Running trjcat command: ", trjcat_command)
-    subprocess.run(trjcat_command, input=b"0\n", check=True)
-    print("Concatenated trajectory written to: ", output_traj_file)
+    with mda.Writer(output_traj_file, u.trajectory.n_atoms) as W:
+        for ts in u.trajectory:
+            W.write(u)
+
 
 def PBC_conversion():
 
