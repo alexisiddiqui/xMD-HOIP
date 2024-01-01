@@ -2,7 +2,7 @@
 ;	File 'mdout.mdp' was generated
 ;	By user: alexi (1000)
 ;	On host: Celeste
-;	At date: Tue Dec 26 03:17:17 2023
+;	At date: Mon Jan  1 23:02:11 2024
 ;
 ;	Created by:
 ;	                     :-) GROMACS - gmx grompp, 2023.2 (-:
@@ -11,7 +11,7 @@
 ;	Data prefix:  /usr/local/gromacs
 ;	Working dir:  /home/alexi/Documents/xMD
 ;	Command line:
-;	  gmx grompp -f config/7_prod.mdp -c data/MD/5PTI/BPTI_genvel4/R_5/APO_amber99_5PTI_5.gro -p data/MD/5PTI/BPTI_genvel4/R_5/5PTI_APO_amber99_H.top -o data/MD/5PTI/BPTI_genvel4/R_5/APO_amber99_5PTI_6.tpr -r data/MD/5PTI/BPTI_genvel4/R_5/APO_amber99_5PTI_5.gro -maxwarn 1 -v
+;	  gmx grompp -f config/7_prod.mdp -c data/MD/5PTI/BPTI_genvel4/R_3/APO_amber99_5PTI_5.gro -p data/MD/5PTI/BPTI_genvel4/R_3/5PTI_APO_amber99_H.top -o data/MD/5PTI/BPTI_genvel4/R_3/APO_amber99_5PTI_6.tpr -r data/MD/5PTI/BPTI_genvel4/R_3/APO_amber99_5PTI_5.gro -maxwarn 1 -v
 
 ; VARIOUS PREPROCESSING OPTIONS
 ; Preprocessor information: use cpp syntax.
@@ -171,7 +171,7 @@ annealing-temp           =
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen-vel                  = yes
 gen-temp                 = 300
-gen-seed                 = -152590369
+gen-seed                 = -6553731
 
 ; OPTIONS FOR BONDS    
 constraints              = h-bonds
