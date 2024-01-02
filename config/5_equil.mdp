@@ -2,7 +2,7 @@
 
 ; VARIOUS PREPROCESSING OPTIONS
 include                  = 
-define                   =  -DPOSRES -DPOSRES_FC=0.5 ; will trigger the inclusion of posre.itp into your topology, used for implementing position restraints.
+define                   =  -DCAPOSRES -DCAPOSRES_FC=-2.5 ; will trigger the inclusion of posre.itp into your topology, used for implementing position restraints.
 ; here we assume that in posres.itp file all force constants have been changed to POSRES_FC
 ; see this link for details http://mdsquad.wikia.com/wiki/Change_position_restraint_force_constant_in_MDP
 ;1000 kJ mol-1 nm-2 is the default constant
@@ -130,7 +130,7 @@ tc-grps                  = System ; NOTE: Group name "System" is defined if you 
 tau-t                    = 1 ; 1 ps as used in Amber paper, but we might need to research and use different for large scale dynamics!
 ref-t                    = 300
 ; pressure coupling     
-pcoupl                   = Parrinello-Rahman
+pcoupl                   = Berendsen
 pcoupltype               = Isotropic
 nstpcouple               = -1
 ; Time constant (ps), compressibility (1/bar) and reference P (bar)
@@ -139,6 +139,7 @@ compressibility          = 4.5e-5 ; for water
 ref-p                    = 1 ; 1 bar
 ; Scaling of reference coordinates, No, All or COM
 refcoord-scaling         = com ; The reference coordinates are scaled with the scaling matrix of the pressure coupling. 
+
 
 
 

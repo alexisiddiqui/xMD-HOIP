@@ -8532,6 +8532,10 @@ Protein_chain_A     3
 #include "5PTI_APO_amber99_H.itp"
 #endif
 
+#ifdef CAPOSRES
+#include "5PTI_APO_amber99_CA.itp"
+#endif
+
 ; Include water topology
 #include "amber99sb-ildn.ff/spc.itp"
 
