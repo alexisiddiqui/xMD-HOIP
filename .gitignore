@@ -162,6 +162,7 @@ cython_debug/
 data/
 logs/
 visualisation/
+temporary/
 
 .DS_Store
 ```
