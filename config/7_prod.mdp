@@ -13,7 +13,7 @@ define                   =  ; NO RESTRAINTS DEFINED HERE
 
 ; RUN CONTROL PARAMETERS
 integrator               = md ; Steepest descent integrator
-nsteps                   = 500000 ; 5 00 000 = 1 nanoseconds 
+nsteps                   = 5000000 ; 5 00 000 =  10 nanoseconds 
 init-step                = 0 ; For exact run continuation or redoing part of a run
 simulation-part          = 1 ; Part index is updated automatically on checkpointing (keeps files separate)
 comm-mode                = Linear ; mode for center of mass motion removal
@@ -53,7 +53,7 @@ energygrps               =
 ; cut-off scheme (Verlet: particle based cut-offs, group: using charge groups)
 cutoff-scheme            = Verlet
 ; nblist update frequency
-nstlist                  = 10
+nstlist                  = 100
 ; ns algorithm (simple or grid)
 ns-type                  = Grid
 ; Periodic boundary conditions: xyz, no, xy
@@ -133,7 +133,7 @@ tc-grps                  = System ; NOTE: Group name "System" is defined if you 
 tau-t                    = 1 ; 1 ps as used in Amber paper, but we might need to research and use different for large scale dynamics!
 ref-t                    = 300
 ; pressure coupling     
-pcoupl                   = Parrinello-Rahman
+pcoupl                   = no
 pcoupltype               = Isotropic
 nstpcouple               = -1
 ; Time constant (ps), compressibility (1/bar) and reference P (bar)

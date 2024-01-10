@@ -2,16 +2,16 @@
 ;	File 'mdout.mdp' was generated
 ;	By user: alexi (1000)
 ;	On host: Celeste
-;	At date: Wed Jan  3 02:26:44 2024
+;	At date: Wed Jan 10 04:04:09 2024
 ;
 ;	Created by:
 ;	                     :-) GROMACS - gmx grompp, 2023.2 (-:
 ;	
 ;	Executable:   /usr/local/gromacs/bin/gmx
 ;	Data prefix:  /usr/local/gromacs
-;	Working dir:  /home/alexi/Documents/xMD
+;	Working dir:  /home/alexi/Documents/xMD-HOIP
 ;	Command line:
-;	  gmx grompp -f config/7_prod.mdp -c data/MD/5PTI/BPTI_genvel1/R_5/APO_amber99_5PTI_5.gro -p data/MD/5PTI/BPTI_genvel1/R_5/5PTI_APO_amber99_H.top -o data/MD/5PTI/BPTI_genvel1/R_5/APO_amber99_5PTI_6.tpr -r data/MD/5PTI/BPTI_genvel1/R_5/APO_amber99_5PTI_5.gro -maxwarn 1 -v
+;	  gmx grompp -f config/7_prod.mdp -c data/MD/6SC6/APO_dab3/R_5/APO_dab3_6SC6_6.gro -p data/MD/6SC6/APO_dab3/R_5/6SC6_APO_dab3_chimera.top -o data/MD/6SC6/APO_dab3/R_5/APO_dab3_6SC6_7.tpr -r data/MD/6SC6/APO_dab3/R_5/APO_dab3_6SC6_6.gro -maxwarn 1 -v
 
 ; VARIOUS PREPROCESSING OPTIONS
 ; Preprocessor information: use cpp syntax.
@@ -25,7 +25,7 @@ integrator               = md
 ; Start time and timestep in ps
 tinit                    = 0
 dt                       = 0.002
-nsteps                   = 500000
+nsteps                   = 5000000
 ; For exact run continuation or redoing part of a run
 init-step                = 0
 ; Part index is updated automatically on checkpointing (keeps files separate)
@@ -82,7 +82,7 @@ energygrps               =
 ; cut-off scheme (Verlet: particle based cut-offs)
 cutoff-scheme            = Verlet
 ; nblist update frequency
-nstlist                  = 10
+nstlist                  = 100
 ; Periodic boundary conditions: xyz, no, xy
 pbc                      = xyz
 periodic-molecules       = no
@@ -143,7 +143,7 @@ tc-grps                  = System
 tau-t                    = 1
 ref-t                    = 300
 ; pressure coupling     
-pcoupl                   = Parrinello-Rahman
+pcoupl                   = no
 pcoupltype               = Isotropic
 nstpcouple               = -1
 ; Time constant (ps), compressibility (1/bar) and reference P (bar)
@@ -171,7 +171,7 @@ annealing-temp           =
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen-vel                  = yes
 gen-temp                 = 300
-gen-seed                 = 2130689021
+gen-seed                 = 2138825213
 
 ; OPTIONS FOR BONDS    
 constraints              = h-bonds

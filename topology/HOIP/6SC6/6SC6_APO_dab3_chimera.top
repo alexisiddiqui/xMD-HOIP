@@ -1,0 +1,52 @@
+;
+;	File '6SC6_APO_dab3_chimera.top' was generated
+;	By user: alexi (1000)
+;	On host: Celeste
+;	At date: Mon Jan  8 16:25:43 2024
+;
+;	This is a standalone topology file
+;
+;	Created by:
+;	                    :-) GROMACS - gmx pdb2gmx, 2023.2 (-:
+;	
+;	Executable:   /usr/local/gromacs/bin/gmx
+;	Data prefix:  /usr/local/gromacs
+;	Working dir:  /home/alexi/Documents/topology_generation
+;	Command line:
+;	  gmx pdb2gmx -f 6SC6_APO_dab3_chimera.pdb -o 6SC6_APO_dab3_chimera.gro -p 6SC6_APO_dab3_chimera.top -i 6SC6_APO_dab3_chimera.itp -water tip3p -ignh
+;	Force field was read from current directory or a relative path - path added.
+;
+
+; Include forcefield parameters
+#include "./amber14sb.ff/forcefield.itp"
+
+; Include chain topologies
+#include "6SC6_APO_dab3_chimera_Protein_chain_C.itp"
+#include "6SC6_APO_dab3_chimera_Protein_chain_A.itp"
+#include "6SC6_APO_dab3_chimera_Protein_chain_B.itp"
+
+; Include water topology
+#include "./amber14sb.ff/tip3p.itp"
+
+#ifdef POSRES_WATER
+; Position restraint for each water oxygen
+[ position_restraints ]
+;  i funct       fcx        fcy        fcz
+   1    1       1000       1000       1000
+#endif
+
+; Include topology for ions
+#include "./amber14sb.ff/ions.itp"
+
+[ system ]
+; Name
+Protein in water
+
+[ molecules ]
+; Compound        #mols
+Protein_chain_C     1
+Protein_chain_A     1
+Protein_chain_B     1
+SOL         42629
+NA               126
+CL               131
